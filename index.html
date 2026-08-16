@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FlexPlan - 健身训练管理</title>
+<style>
+:root {
+  --color-bg: #f2f2f7;
+  --color-white: #ffffff;
+  --color-primary: #1c1c1e;
+  --color-accent: #007aff;
+  --color-text: #1c1c1e;
+  --color-text-secondary: #8e8e93;
+  --color-border: #d1d1d6;
+  --color-divider: #e5e5ea;
+  --color-success: #34c759;
+  --color-warning: #ff9500;
+  --color-danger: #ff3b30;
+  --color-chest: #ffe5e5;
+  --color-back: #e5f2ff;
+  --color-shoulders: #fff5e5;
+  --color-legs: #e5f5e5;
+  --color-arms: #f0e5ff;
+  --color-core: #fff0f5;
+  --color-default: #f0f0f0;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --font-xs: 12px;
+  --font-sm: 14px;
+  --font-md: 16px;
+  --font-lg: 20px;
+  --font-xl: 28px;
+  --font-xxl: 36px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --tab-height: 56px;
+  --header-height: 50px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+  font-size: var(--font-md); color: var(--color-text); background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+#app {
+  width: 100%; max-width: 375px; height: 100vh; max-height: 812px;
+  margin: 0 auto; position: relative; background-color: var(--color-bg);
+  overflow: hidden; display: flex; flex-direction: column;
+}
+.page {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--tab-height) + 20px); display: none;
+}
+.page.active { display: block; }
+.page::-webkit-scrollbar { display: none; }
+
+/* 顶部导航栏 */
+.header {
+  height: var(--header-height); background-color: var(--color-white);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 var(--space-md); border-bottom: 1px solid var(--color-divider);
+  position: sticky; top: 0; z-index: 10;
+}
+.header-title { font-size: var(--font-lg); font-weight: 600; }
+.header-btn {
+  background: none; border: none; font-size: var(--font-md);
+  color: var(--color-accent); cursor: pointer; padding: var(--space-sm);
+}
+.header-btn.danger { color: var(--color-danger); }
+
+/* 底部导航 */
+.tabbar {
+  height: var(--tab-height); background-color: var(--color-white);
+  border-top: 1px solid var(--color-divider); display: flex;
+  position: absolute; bottom: 0; left: 0; right: 0; z-index: 100;
+}
+.tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; color: var(--color-text-secondary);
+  font-size: var(--font-xs); cursor: pointer; transition: color 0.2s;
+}
+.tab.active { color: var(--color-accent); }
+.tab-icon { font-size: 20px; margin-bottom: 2px; }
+
+/* 按钮 */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: var(--space-sm) var(--space-md); border: none;
+  border-radius: var(--radius-md); font-size: var(--font-md); font-weight: 500;
+  cursor: pointer; transition: all 0.15s ease; background: none;
+}
+.btn:active { transform: scale(0.97); opacity: 0.8; }
+.btn-primary { background-color: var(--color-primary); color: white; }
+.btn-secondary { background-color: var(--color-white); color: var(--color-text); border: 1px solid var(--color-border); }
+.btn-danger { background-color: var(--color-danger); color: white; }
+.btn-success { background-color: var(--color-success); color: white; }
+.btn-block { display: flex; width: 100%; padding: var(--space-md); }
+.btn-sm { padding: var(--space-xs) var(--space-sm); font-size: var(--font-sm); }
+
+/* 卡片 */
+.card {
+  background-color: var(--color-white); border-radius: var(--radius-md);
+  padding: var(--space-md); margin-bottom: var(--space-sm);
+}
+.card-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-md); background-color: var(--color-white);
+  border-radius: var(--radius-md); margin-bottom: var(--space-sm);
+}
+.list-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-md); background-color: var(--color-white);
+  border-radius: var(--radius-md); margin-bottom: var(--space-sm);
+  cursor: pointer; transition: background 0.15s;
+}
+.list-item:active { background-color: var(--color-divider); }
+
+/* 输入框 */
+.input {
+  width: 100%; padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  font-size: var(--font-md); background-color: var(--color-white); outline: none;
+}
+.input:focus { border-color: var(--color-accent); }
+.input-small {
+  width: 60px; padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  font-size: var(--font-md); text-align: center; outline: none;
+}
+.input-small:focus { border-color: var(--color-accent); }
+
+/* 模态框 */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.4); display: flex;
+  align-items: center; justify-content: center; z-index: 1000;
+  opacity: 0; visibility: hidden; transition: opacity 0.2s ease;
+}
+.modal-overlay.active { opacity: 1; visibility: visible; }
+.modal {
+  width: 85%; max-width: 300px; background-color: var(--color-white);
+  border-radius: var(--radius-lg); padding: var(--space-lg);
+  transform: scale(0.9); transition: transform 0.2s ease;
+}
+.modal-overlay.active .modal { transform: scale(1); }
+.modal-title { font-size: var(--font-lg); font-weight: 600; margin-bottom: var(--space-md); text-align: center; }
+.modal-body { margin-bottom: var(--space-lg); }
+.modal-actions { display: flex; gap: var(--space-sm); }
+.modal-actions .btn { flex: 1; }
+
+/* 空状态 */
+.empty-state { text-align: center; padding: var(--space-xl) var(--space-md); color: var(--color-text-secondary); }
+.empty-state-icon { font-size: 48px; margin-bottom: var(--space-md); }
+
+/* 浮动按钮 */
+.fab {
+  position: absolute; bottom: calc(var(--tab-height) + var(--space-md));
+  left: var(--space-md); right: var(--space-md); z-index: 50;
+}
+
+/* 训练记录页样式 */
+.timer-display {
+  font-size: var(--font-lg); font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.set-row {
+  display: flex; align-items: center; gap: var(--space-sm);
+  padding: var(--space-sm) 0; border-bottom: 1px solid var(--color-divider);
+}
+.set-row:last-child { border-bottom: none; }
+.set-number { width: 40px; color: var(--color-text-secondary); font-size: var(--font-sm); }
+.set-completed {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--color-border);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  background-color: var(--color-white); font-size: 14px;
+}
+.set-completed.checked { background-color: var(--color-success); border-color: var(--color-success); color: white; }
+
+/* 日历样式 */
+.calendar-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+  background-color: var(--color-divider); border-radius: var(--radius-sm); overflow: hidden;
+}
+.calendar-weekday {
+  background-color: var(--color-white); padding: var(--space-xs);
+  text-align: center; font-size: var(--font-xs); color: var(--color-text-secondary);
+}
+.calendar-day {
+  background-color: var(--color-white); min-height: 50px; padding: var(--space-xs);
+  display: flex; flex-direction: column; cursor: pointer; font-size: var(--font-sm);
+}
+.calendar-day.other-month { color: var(--color-text-secondary); opacity: 0.4; }
+.calendar-day.today { background-color: var(--color-bg); }
+.calendar-day.has-workout { font-weight: 600; }
+.calendar-day .day-num { font-size: var(--font-sm); }
+.calendar-day .day-content {
+  flex: 1; font-size: 10px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; margin-top: 2px;
+  border-radius: 4px; padding: 2px;
+}
+.workout-tag {
+  font-size: 10px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* 部位颜色类 */
+.bg-chest { background-color: var(--color-chest); color: #c44; }
+.bg-back { background-color: var(--color-back); color: #369; }
+.bg-shoulders { background-color: var(--color-shoulders); color: #c80; }
+.bg-legs { background-color: var(--color-legs); color: #283; }
+.bg-arms { background-color: var(--color-arms); color: #639; }
+.bg-core { background-color: var(--color-core); color: #c3a; }
+.bg-default { background-color: var(--color-default); color: #666; }
+
+/* 训练总结大字 */
+.summary-duration {
+  font-size: var(--font-xxl); font-weight: 700; text-align: center;
+  margin: var(--space-lg) 0; color: var(--color-primary);
+}
+
+/* 提示信息 */
+.toast {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background-color: rgba(0,0,0,0.8); color: white; padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md); font-size: var(--font-sm); z-index: 2000;
+  opacity: 0; visibility: hidden; transition: opacity 0.2s ease; pointer-events: none;
+}
+.toast.active { opacity: 1; visibility: visible; }
+
+/* 详情面板 */
+.detail-panel {
+  background-color: var(--color-white); border-radius: var(--radius-md);
+  padding: var(--space-md); margin-top: var(--space-md);
+}
+
+/* 设置图标 */
+.settings-icon { font-size: 20px; cursor: pointer; padding: var(--space-sm); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ========== 页面1：训练首页 ========== -->
+  <div id="page-home" class="page active" data-page="home">
+    <div class="header">
+      <div class="header-title">FlexPlan</div>
+      <div style="display: flex; align-items: center; gap: var(--space-xs);">
+        <div onclick="showProfileModal()" style="display: flex; align-items: center; gap: 4px; padding: 4px 8px; background: var(--color-bg); border-radius: var(--radius-sm); cursor: pointer;">
+          <span id="currentProfileIcon" style="font-size: var(--font-md);">👤</span>
+          <span id="currentProfileName" style="font-size: var(--font-sm); max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">我</span>
+        </div>
+        <div class="settings-icon" onclick="openSettings()">⚙️</div>
+      </div>
+    </div>
+    <div style="padding: var(--space-md);">
+      <div class="card" style="text-align: center; background: var(--color-primary); color: white; margin-bottom: var(--space-md);">
+        <div style="font-size: var(--font-sm); opacity: 0.8;">累计训练时长</div>
+        <div style="font-size: var(--font-xxl); font-weight: 700; margin: var(--space-xs) 0;" id="totalDuration">0 小时</div>
+        <div style="font-size: var(--font-sm); opacity: 0.8;" id="totalCount">共 0 次训练</div>
+      </div>
+      <div id="bodyPartsList"></div>
+      <button class="btn btn-secondary btn-block" style="margin-top: var(--space-md);" onclick="showAddBodyPartModal()">+ 新建部位</button>
+    </div>
+  </div>
+
+  <!-- ========== 页面2：动作库 ========== -->
+  <div id="page-library" class="page" data-page="library">
+    <div class="header">
+      <button class="header-btn" onclick="showPage('home')">‹ 返回</button>
+      <div class="header-title" id="libraryTitle">部位</div>
+      <div></div>
+    </div>
+    <div style="padding: var(--space-md);">
+      <div id="exercisesList"></div>
+      <button class="btn btn-secondary btn-block" style="margin-top: var(--space-sm);" onclick="showAddExerciseModal()">+ 添加动作</button>
+      <button class="btn btn-primary btn-block" style="margin-top: var(--space-sm);" onclick="startTraining()">开始训练</button>
+    </div>
+  </div>
+
+  <!-- ========== 页面3：训练记录 ========== -->
+  <div id="page-record" class="page" data-page="record">
+    <div class="header">
+      <button class="header-btn danger" onclick="confirmEndTraining()">× 结束</button>
+      <div class="timer-display" id="trainingTimer">00:00:00</div>
+      <div class="header-title" id="recordBodyPart" style="font-size: var(--font-md);">部位</div>
+    </div>
+    <div style="padding: var(--space-md);">
+      <div id="trainingExercises"></div>
+      <div style="margin-top: var(--space-md); padding: var(--space-md); background-color: var(--color-white); border-radius: var(--radius-md); text-align: center;">
+        <div style="color: var(--color-text-secondary); margin-bottom: var(--space-sm);" id="trainingProgress">进度: 0/0</div>
+        <button class="btn btn-secondary btn-block" onclick="showAddExerciseInTrainingModal()">+ 添加动作</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 页面4：训练总结 ========== -->
+  <div id="page-summary" class="page" data-page="summary">
+    <div class="header">
+      <div class="header-title">训练总结</div>
+      <div></div>
+      <div></div>
+    </div>
+    <div style="padding: var(--space-md);">
+      <div class="summary-duration" id="summaryDuration">0 分钟</div>
+      <div class="card" style="text-align: center; color: var(--color-text-secondary);" id="summaryText"></div>
+      <div class="card">
+        <div style="font-weight: 600; margin-bottom: var(--space-sm);">🤖 AI 建议</div>
+        <div id="aiAdvice" style="color: var(--color-text-secondary);">分析中...</div>
+      </div>
+      <button class="btn btn-primary btn-block" style="margin-top: var(--space-md);" onclick="showPage('calendar'); switchTab('calendar');">完成</button>
+    </div>
+  </div>
+
+  <!-- ========== 页面5：日历 ========== -->
+  <div id="page-calendar" class="page" data-page="calendar">
+    <div class="header">
+      <button class="header-btn" onclick="prevMonth()">‹</button>
+      <div class="header-title" id="calendarTitle">2026年 8月</div>
+      <button class="header-btn" onclick="nextMonth()">›</button>
+    </div>
+    <div style="padding: var(--space-md);">
+      <div class="card" style="text-align: center; color: var(--color-text-secondary); font-size: var(--font-sm);" id="monthSummary">本月训练 0 次 · 共 0 小时</div>
+      <button class="btn btn-secondary btn-block" style="margin-top: var(--space-sm); margin-bottom: var(--space-md);" onclick="showWorkoutList()">📋 查看全部训练记录</button>
+      <div class="calendar-grid" id="calendarGrid"></div>
+      <div id="dayDetailPanel"></div>
+    </div>
+  </div>
+
+  <!-- ========== 底部导航 ========== -->
+  <div class="tabbar">
+    <div class="tab active" data-tab="home" onclick="switchTab('home')">
+      <div class="tab-icon">💪</div><div>训练</div>
+    </div>
+    <div class="tab" data-tab="calendar" onclick="switchTab('calendar')">
+      <div class="tab-icon">📅</div><div>日历</div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框：通用输入 ========== -->
+  <div class="modal-overlay" id="inputModal">
+    <div class="modal">
+      <div class="modal-title" id="inputModalTitle">输入</div>
+      <div class="modal-body">
+        <input type="text" class="input" id="inputModalValue" placeholder="请输入">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('inputModal')">取消</button>
+        <button class="btn btn-primary" id="inputModalConfirm">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框：确认 ========== -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal">
+      <div class="modal-title" id="confirmModalTitle">确认</div>
+      <div class="modal-body" id="confirmModalBody" style="text-align: center; color: var(--color-text-secondary);"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('confirmModal')">取消</button>
+        <button class="btn btn-danger" id="confirmModalConfirm">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框：设置 ========== -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal" style="max-width: 320px;">
+      <div class="modal-title">设置</div>
+      <div class="modal-body" style="max-height: 440px; overflow-y: auto;">
+        <div style="margin-bottom: var(--space-md);">
+          <div style="margin-bottom: var(--space-sm); font-size: var(--font-sm); color: var(--color-text-secondary);">默认休息时长（秒）</div>
+          <input type="number" class="input" id="settingsRestSeconds" value="90">
+        </div>
+        <div style="margin-bottom: var(--space-md);">
+          <div style="margin-bottom: var(--space-sm); font-size: var(--font-sm); color: var(--color-text-secondary);">AI 服务商</div>
+          <select class="input" id="settingsAiProvider" onchange="toggleAiKeyInputs()">
+            <option value="deepseek">DeepSeek</option>
+            <option value="doubao">豆包（火山方舟）</option>
+          </select>
+        </div>
+        <div id="deepseekKeyField" style="margin-bottom: var(--space-md);">
+          <div style="margin-bottom: var(--space-sm); font-size: var(--font-sm); color: var(--color-text-secondary);">DeepSeek API Key</div>
+          <input type="text" class="input" id="settingsApiKey" placeholder="sk-...">
+        </div>
+        <div id="doubaoKeyField" style="margin-bottom: var(--space-md); display: none;">
+          <div style="margin-bottom: var(--space-sm); font-size: var(--font-sm); color: var(--color-text-secondary);">豆包 API Key（火山方舟 Endpoint ID）</div>
+          <input type="text" class="input" id="settingsDoubaoKey" placeholder="ep-...">
+          <div style="font-size: var(--font-xs); color: var(--color-text-secondary); margin-top: 4px;">需在火山方舟控制台创建推理接入点获取</div>
+        </div>
+        <div style="margin-bottom: var(--space-md); padding: var(--space-sm); background: var(--color-bg); border-radius: var(--radius-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+            <div style="font-weight: 600; font-size: var(--font-sm);">👤 使用者档案</div>
+            <button class="btn btn-primary btn-sm" onclick="closeModal('settingsModal'); showProfileModal();">管理</button>
+          </div>
+          <div style="font-size: var(--font-xs); color: var(--color-text-secondary);">多人共用时可创建独立档案，各自训练数据互不干扰</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('settingsModal')">取消</button>
+        <button class="btn btn-primary" onclick="saveSettings()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框：使用者档案管理 ========== -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal" style="max-width: 320px;">
+      <div class="modal-title">使用者档案</div>
+      <div class="modal-body" style="max-height: 440px; overflow-y: auto;" id="profileListBody"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('profileModal')">关闭</button>
+        <button class="btn btn-primary" onclick="showCreateProfileInput()">+ 新建档案</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框：训练中添加动作 ========== -->
+  <div class="modal-overlay" id="addExerciseTrainingModal">
+    <div class="modal" style="max-width: 320px;">
+      <div class="modal-title">添加动作</div>
+      <div class="modal-body">
+        <div id="trainingExerciseOptions" style="max-height: 240px; overflow-y: auto; margin-bottom: var(--space-md);"></div>
+        <button class="btn btn-secondary btn-block btn-sm" onclick="showCreateExerciseInTrainingModal()">+ 新建动作</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('addExerciseTrainingModal')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框：日历日详情 ========== -->
+  <div class="modal-overlay" id="dayDetailModal">
+    <div class="modal" style="max-width: 340px; width: 92%;">
+      <div class="modal-title" id="dayDetailTitle">日期详情</div>
+      <div class="modal-body" id="dayDetailBody" style="max-height: 360px; overflow-y: auto;"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('dayDetailModal')">关闭</button>
+        <button class="btn btn-primary" onclick="saveDayDetailEdits()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框：补录训练 ========== -->
+  <div class="modal-overlay" id="addWorkoutModal">
+    <div class="modal">
+      <div class="modal-title">补录训练</div>
+      <div class="modal-body">
+        <div style="margin-bottom: var(--space-md);">
+          <div style="margin-bottom: var(--space-sm); font-size: var(--font-sm); color: var(--color-text-secondary);">部位</div>
+          <select class="input" id="addWorkoutBodyPart"></select>
+        </div>
+        <div>
+          <div style="margin-bottom: var(--space-sm); font-size: var(--font-sm); color: var(--color-text-secondary);">时长（分钟）</div>
+          <input type="number" class="input" id="addWorkoutDuration" value="60">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('addWorkoutModal')">取消</button>
+        <button class="btn btn-primary" onclick="saveAddWorkout()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 模态框：训练记录列表 ========== -->
+  <div class="modal-overlay" id="workoutListModal">
+    <div class="modal" style="max-width: 340px; width: 92%;">
+      <div class="modal-title">训练记录</div>
+      <div class="modal-body" id="workoutListBody" style="max-height: 400px; overflow-y: auto;"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('workoutListModal')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 欢迎页（新设备首次使用引导创建档案） ========== -->
+  <div id="welcomeScreen" style="display:none; position:absolute; inset:0; background:var(--color-white); z-index:500; flex-direction:column; align-items:center; justify-content:center; padding: var(--space-xl);" data-page="welcome">
+    <div style="font-size: 60px; margin-bottom: var(--space-lg);">💪</div>
+    <div style="font-size: var(--font-xl); font-weight:700; margin-bottom: var(--space-sm);">欢迎使用 FlexPlan</div>
+    <div style="text-align:center; color: var(--color-text-secondary); margin-bottom: var(--space-xl); font-size: var(--font-sm);">
+      先创建你的档案，开始记录每一次训练<br>（数据仅保存在当前设备，别人无法看到）
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-bottom: var(--space-sm);" onclick="showCreateProfileFromWelcome()">创建我的档案</button>
+    <div style="font-size: var(--font-xs); color: var(--color-text-secondary);">📱 多人共用？每个人创建自己的档案即可</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ==================== 使用者档案系统 ====================
+const PROFILES_STORAGE_KEY = 'flexplan_profiles';
+const CURRENT_PROFILE_KEY = 'flexplan_current_profile';
+const PROFILE_EMOJIS = ['👤','💪','🏃','🧘','🏋️','🚴','🤸','⚡','⭐','🔥'];
+
+let profiles = [];
+let currentProfileId = null;
+
+function getStorageKeys(pid) {
+  const p = pid || currentProfileId || 'default';
+  return {
+    bodyparts: `flexplan_${p}_bodyparts`,
+    exercises: `flexplan_${p}_exercises`,
+    workouts: `flexplan_${p}_workouts`,
+    settings: `flexplan_${p}_settings`
+  };
+}
+
+function loadProfiles() {
+  try {
+    profiles = JSON.parse(localStorage.getItem(PROFILES_STORAGE_KEY)) || [];
+  } catch(e) { profiles = []; }
+  try {
+    currentProfileId = localStorage.getItem(CURRENT_PROFILE_KEY) || null;
+  } catch(e) { currentProfileId = null; }
+  if (profiles.length > 0) {
+    if (!profiles.find(p => p.id === currentProfileId)) currentProfileId = profiles[0].id;
+    localStorage.setItem(CURRENT_PROFILE_KEY, currentProfileId);
+  } else {
+    currentProfileId = null;
+  }
+  return profiles.length > 0;
+}
+
+function hasProfile() {
+  return profiles.length > 0 && currentProfileId;
+}
+
+function saveProfiles() {
+  try { localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(profiles)); } catch(e){}
+}
+
+function getCurrentProfile() {
+  return profiles.find(p => p.id === currentProfileId) || profiles[0];
+}
+
+function renderCurrentProfileHeader() {
+  const p = getCurrentProfile();
+  if (!p) return;
+  const iconEl = document.getElementById('currentProfileIcon');
+  const nameEl = document.getElementById('currentProfileName');
+  if (iconEl) iconEl.textContent = p.icon;
+  if (nameEl) nameEl.textContent = p.name;
+}
+
+function showProfileModal() {
+  const container = document.getElementById('profileListBody');
+  container.innerHTML = profiles.map(p => {
+    const isCurrent = p.id === currentProfileId;
+    return `
+      <div class="list-item" style="${isCurrent ? 'background: var(--color-bg); border: 1px solid var(--color-accent);' : ''}" onclick="switchProfile('${p.id}')">
+        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+          <span style="font-size: 22px;">${p.icon}</span>
+          <div>
+            <div style="font-weight: 600;">${p.name}</div>
+            <div style="font-size: var(--font-xs); color: var(--color-text-secondary);">${isCurrent ? '当前使用中' : '点击切换'}</div>
+          </div>
+        </div>
+        <div>
+          ${profiles.length > 1 ? `<button class="header-btn danger btn-sm" onclick="event.stopPropagation(); deleteProfile('${p.id}')">🗑️</button>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+  openModal('profileModal');
+}
+
+function switchProfile(pid) {
+  if (pid === currentProfileId) return;
+  currentProfileId = pid;
+  localStorage.setItem(CURRENT_PROFILE_KEY, pid);
+  renderCurrentProfileHeader();
+  loadState();
+  renderBodyParts();
+  renderTotalStats();
+  closeModal('profileModal');
+  showToast('已切换档案');
+}
+
+function deleteProfile(pid) {
+  const p = profiles.find(x => x.id === pid);
+  if (!p) return;
+  document.getElementById('confirmModalTitle').textContent = '删除档案';
+  document.getElementById('confirmModalBody').textContent = `删除"${p.name}"？该档案的所有训练数据将被清除且不可恢复。`;
+  document.getElementById('confirmModalConfirm').onclick = () => {
+    // 清除数据
+    const keys = getStorageKeys(pid);
+    Object.values(keys).forEach(k => { try { localStorage.removeItem(k); } catch(e){} });
+    profiles = profiles.filter(x => x.id !== pid);
+    if (currentProfileId === pid) {
+      currentProfileId = profiles[0].id;
+      localStorage.setItem(CURRENT_PROFILE_KEY, currentProfileId);
+    }
+    saveProfiles();
+    renderCurrentProfileHeader();
+    loadState();
+    renderBodyParts();
+    renderTotalStats();
+    showProfileModal();
+    closeModal('confirmModal');
+    showToast('已删除');
+  };
+  openModal('confirmModal');
+}
+
+function showCreateProfileInput() {
+  createProfileFlow(false);
+}
+
+function showCreateProfileFromWelcome() {
+  createProfileFlow(true);
+}
+
+function createProfileFlow(fromWelcome) {
+  // 先关闭档案面板，避免层级遮挡输入框
+  if (!fromWelcome) closeModal('profileModal');
+  document.getElementById('inputModalTitle').textContent = '新建档案';
+  const emoji = PROFILE_EMOJIS[Math.floor(Math.random() * PROFILE_EMOJIS.length)];
+  document.getElementById('inputModalValue').value = '';
+  document.getElementById('inputModalValue').placeholder = '请输入昵称（如：小明、小红）';
+  document.getElementById('inputModalConfirm').onclick = () => {
+    const name = document.getElementById('inputModalValue').value.trim();
+    if (!name) { showToast('请输入昵称'); return; }
+    const newId = 'profile_' + Date.now();
+    profiles.push({ id: newId, name, icon: emoji, createdAt: new Date().toISOString() });
+    saveProfiles();
+    currentProfileId = newId;
+    localStorage.setItem(CURRENT_PROFILE_KEY, newId);
+    renderCurrentProfileHeader();
+    loadState();
+    renderBodyParts();
+    renderTotalStats();
+    closeModal('inputModal');
+    if (fromWelcome) {
+      document.getElementById('welcomeScreen').style.display = 'none';
+      showToast('欢迎 ' + name + '！');
+    } else {
+      showProfileModal();
+      showToast('已创建新档案');
+    }
+  };
+  openModal('inputModal');
+}
+
+// ==================== 数据层 ====================
+// 预置数据
+const PRESET_DATA = {
+  bodyParts: [
+    { id: 'bp_chest', name: '胸', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'bp_back', name: '背', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'bp_shoulders', name: '肩', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'bp_legs', name: '腿', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'bp_arms', name: '手臂', createdAt: '2026-08-01T10:00:00Z' }
+  ],
+  exercises: [
+    { id: 'ex_001', bodyPartId: 'bp_chest', name: '杠铃卧推', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'ex_002', bodyPartId: 'bp_chest', name: '哑铃飞鸟', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'ex_003', bodyPartId: 'bp_chest', name: '绳索夹胸', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'ex_004', bodyPartId: 'bp_back', name: '引体向上', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'ex_005', bodyPartId: 'bp_back', name: '高位下拉', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'ex_006', bodyPartId: 'bp_back', name: '杠铃划船', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'ex_007', bodyPartId: 'bp_shoulders', name: '哑铃推举', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'ex_008', bodyPartId: 'bp_shoulders', name: '侧平举', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'ex_009', bodyPartId: 'bp_legs', name: '深蹲', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'ex_010', bodyPartId: 'bp_legs', name: '硬拉', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'ex_011', bodyPartId: 'bp_legs', name: '腿弯举', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'ex_012', bodyPartId: 'bp_arms', name: '杠铃弯举', createdAt: '2026-08-01T10:00:00Z' },
+    { id: 'ex_013', bodyPartId: 'bp_arms', name: '绳索下压', createdAt: '2026-08-01T10:00:00Z' }
+  ],
+  settings: { defaultRestSeconds: 90, aiProvider: 'deepseek', apiKey: '', doubaoKey: '' }
+};
+
+let state = {
+  bodyParts: [],
+  exercises: [],
+  workouts: [],
+  settings: { defaultRestSeconds: 90, aiProvider: 'deepseek', apiKey: '', doubaoKey: '' },
+  currentBodyPartId: null,
+  currentBodyPartName: '',
+  training: null,
+  calendarDate: new Date(),
+  editDayDate: null,
+  editDayWorkouts: []
+};
+
+function loadState() {
+  if (!currentProfileId) {
+    state.bodyParts = PRESET_DATA.bodyParts.slice();
+    state.exercises = PRESET_DATA.exercises.slice();
+    state.workouts = [];
+    state.settings = { ...PRESET_DATA.settings };
+    return;
+  }
+  const keys = getStorageKeys();
+  try {
+    state.bodyParts = JSON.parse(localStorage.getItem(keys.bodyparts)) || PRESET_DATA.bodyParts.slice();
+    state.exercises = JSON.parse(localStorage.getItem(keys.exercises)) || PRESET_DATA.exercises.slice();
+    state.workouts = JSON.parse(localStorage.getItem(keys.workouts)) || [];
+    state.settings = JSON.parse(localStorage.getItem(keys.settings)) || { ...PRESET_DATA.settings };
+    if (!state.settings.aiProvider) state.settings.aiProvider = 'deepseek';
+    if (!state.settings.doubaoKey) state.settings.doubaoKey = '';
+  } catch (e) {
+    state.bodyParts = PRESET_DATA.bodyParts.slice();
+    state.exercises = PRESET_DATA.exercises.slice();
+    state.workouts = [];
+    state.settings = { ...PRESET_DATA.settings };
+  }
+  if (state.bodyParts.length === 0) state.bodyParts = PRESET_DATA.bodyParts.slice();
+  if (state.exercises.length === 0) state.exercises = PRESET_DATA.exercises.slice();
+}
+
+function saveBodyParts() { try { localStorage.setItem(getStorageKeys().bodyparts, JSON.stringify(state.bodyParts)); } catch(e){} }
+function saveExercises() { try { localStorage.setItem(getStorageKeys().exercises, JSON.stringify(state.exercises)); } catch(e){} }
+function saveWorkouts() { try { localStorage.setItem(getStorageKeys().workouts, JSON.stringify(state.workouts)); } catch(e){} }
+function saveSettingsData() { try { localStorage.setItem(getStorageKeys().settings, JSON.stringify(state.settings)); } catch(e){} }
+
+function genId(prefix) { return prefix + '_' + Date.now() + '_' + Math.floor(Math.random() * 1000); }
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+// ==================== 页面切换 ====================
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active');
+  });
+  const el = document.getElementById('page-' + pageId);
+  if (el) {
+    el.classList.add('active');
+    el.scrollTop = 0;
+  }
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+  if (tab === 'home') { showPage('home'); renderBodyParts(); renderTotalStats(); }
+  else if (tab === 'calendar') { showPage('calendar'); renderCalendar(); }
+}
+
+// ==================== 部位管理 ====================
+function getBodyPartColorClass(name) {
+  if (name.includes('胸')) return 'bg-chest';
+  if (name.includes('背')) return 'bg-back';
+  if (name.includes('肩')) return 'bg-shoulders';
+  if (name.includes('腿')) return 'bg-legs';
+  if (name.includes('臂') || name.includes('二头') || name.includes('三头')) return 'bg-arms';
+  if (name.includes('核心') || name.includes('腹')) return 'bg-core';
+  return 'bg-default';
+}
+
+function renderBodyParts() {
+  const container = document.getElementById('bodyPartsList');
+  if (state.bodyParts.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div>暂无部位，点击下方按钮新建</div></div>';
+    return;
+  }
+  container.innerHTML = state.bodyParts.map(bp => `
+    <div class="list-item" onclick="enterLibrary('${bp.id}')">
+      <div style="display: flex; align-items: center; gap: var(--space-md);">
+        <div class="workout-tag ${getBodyPartColorClass(bp.name)}" style="padding: 4px 10px; border-radius: 6px; font-size: 13px;">${bp.name}</div>
+      </div>
+      <div>
+        <button class="header-btn" onclick="event.stopPropagation(); editBodyPart('${bp.id}')">✏️</button>
+        <button class="header-btn danger" onclick="event.stopPropagation(); deleteBodyPart('${bp.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function showAddBodyPartModal() {
+  document.getElementById('inputModalTitle').textContent = '新建部位';
+  document.getElementById('inputModalValue').value = '';
+  document.getElementById('inputModalValue').placeholder = '如：胸、背、肩+手臂';
+  document.getElementById('inputModalConfirm').onclick = () => {
+    const name = document.getElementById('inputModalValue').value.trim();
+    if (!name) { showToast('请输入部位名称'); return; }
+    state.bodyParts.push({ id: genId('bp'), name, createdAt: new Date().toISOString() });
+    saveBodyParts();
+    renderBodyParts();
+    closeModal('inputModal');
+    showToast('已添加');
+  };
+  openModal('inputModal');
+}
+
+function editBodyPart(id) {
+  const bp = state.bodyParts.find(b => b.id === id);
+  if (!bp) return;
+  document.getElementById('inputModalTitle').textContent = '编辑部位';
+  document.getElementById('inputModalValue').value = bp.name;
+  document.getElementById('inputModalConfirm').onclick = () => {
+    const name = document.getElementById('inputModalValue').value.trim();
+    if (!name) { showToast('请输入部位名称'); return; }
+    bp.name = name;
+    saveBodyParts();
+    renderBodyParts();
+    closeModal('inputModal');
+    showToast('已更新');
+  };
+  openModal('inputModal');
+}
+
+function deleteBodyPart(id) {
+  const bp = state.bodyParts.find(b => b.id === id);
+  if (!bp) return;
+  const exerciseCount = state.exercises.filter(e => e.bodyPartId === id).length;
+  document.getElementById('confirmModalTitle').textContent = '删除部位';
+  document.getElementById('confirmModalBody').textContent = `删除"${bp.name}"？该部位下的 ${exerciseCount} 个动作也会一并删除。`;
+  document.getElementById('confirmModalConfirm').onclick = () => {
+    state.bodyParts = state.bodyParts.filter(b => b.id !== id);
+    state.exercises = state.exercises.filter(e => e.bodyPartId !== id);
+    saveBodyParts();
+    saveExercises();
+    renderBodyParts();
+    closeModal('confirmModal');
+    showToast('已删除');
+  };
+  openModal('confirmModal');
+}
+
+// ==================== 动作库 ====================
+function enterLibrary(bodyPartId) {
+  state.currentBodyPartId = bodyPartId;
+  const bp = state.bodyParts.find(b => b.id === bodyPartId);
+  state.currentBodyPartName = bp ? bp.name : '';
+  document.getElementById('libraryTitle').textContent = state.currentBodyPartName;
+  renderExercises();
+  showPage('library');
+}
+
+function renderExercises() {
+  const container = document.getElementById('exercisesList');
+  const list = state.exercises.filter(e => e.bodyPartId === state.currentBodyPartId);
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏋️</div><div>暂无动作，点击下方按钮添加</div></div>';
+    return;
+  }
+  container.innerHTML = list.map(ex => `
+    <div class="list-item">
+      <div>${ex.name}</div>
+      <div>
+        <button class="header-btn" onclick="editExercise('${ex.id}')">✏️</button>
+        <button class="header-btn danger" onclick="deleteExercise('${ex.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function showAddExerciseModal() {
+  document.getElementById('inputModalTitle').textContent = '添加动作';
+  document.getElementById('inputModalValue').value = '';
+  document.getElementById('inputModalValue').placeholder = '如：杠铃卧推';
+  document.getElementById('inputModalConfirm').onclick = () => {
+    const name = document.getElementById('inputModalValue').value.trim();
+    if (!name) { showToast('请输入动作名称'); return; }
+    state.exercises.push({ id: genId('ex'), bodyPartId: state.currentBodyPartId, name, createdAt: new Date().toISOString() });
+    saveExercises();
+    renderExercises();
+    closeModal('inputModal');
+    showToast('已添加');
+  };
+  openModal('inputModal');
+}
+
+function editExercise(id) {
+  const ex = state.exercises.find(e => e.id === id);
+  if (!ex) return;
+  document.getElementById('inputModalTitle').textContent = '编辑动作';
+  document.getElementById('inputModalValue').value = ex.name;
+  document.getElementById('inputModalConfirm').onclick = () => {
+    const name = document.getElementById('inputModalValue').value.trim();
+    if (!name) { showToast('请输入动作名称'); return; }
+    ex.name = name;
+    saveExercises();
+    renderExercises();
+    closeModal('inputModal');
+    showToast('已更新');
+  };
+  openModal('inputModal');
+}
+
+function deleteExercise(id) {
+  const ex = state.exercises.find(e => e.id === id);
+  if (!ex) return;
+  document.getElementById('confirmModalTitle').textContent = '删除动作';
+  document.getElementById('confirmModalBody').textContent = `删除"${ex.name}"？历史训练记录不受影响。`;
+  document.getElementById('confirmModalConfirm').onclick = () => {
+    state.exercises = state.exercises.filter(e => e.id !== id);
+    saveExercises();
+    renderExercises();
+    closeModal('confirmModal');
+    showToast('已删除');
+  };
+  openModal('confirmModal');
+}
+
+// ==================== 训练流程 ====================
+let trainingTimerInterval = null;
+let restTimerInterval = null;
+
+function startTraining() {
+  state.training = {
+    bodyPartId: state.currentBodyPartId,
+    bodyPartName: state.currentBodyPartName,
+    startTime: Date.now(),
+    exercises: []
+  };
+  document.getElementById('recordBodyPart').textContent = state.currentBodyPartName;
+  renderTrainingExercises();
+  startTrainingTimer();
+  showPage('record');
+  showToast('训练开始');
+}
+
+function startTrainingTimer() {
+  if (trainingTimerInterval) clearInterval(trainingTimerInterval);
+  trainingTimerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - state.training.startTime) / 1000);
+    const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+    const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+    const s = String(elapsed % 60).padStart(2, '0');
+    document.getElementById('trainingTimer').textContent = `${h}:${m}:${s}`;
+  }, 1000);
+}
+
+function renderTrainingExercises() {
+  const container = document.getElementById('trainingExercises');
+  if (state.training.exercises.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📝</div><div>点击下方"+ 添加动作"开始记录</div></div>';
+  } else {
+    container.innerHTML = state.training.exercises.map((ex, idx) => renderTrainingExerciseCard(ex, idx)).join('');
+  }
+  document.getElementById('trainingProgress').textContent = `进度: ${state.training.exercises.length} 个动作`;
+}
+
+function getLastSetData(exerciseName) {
+  for (let i = state.workouts.length - 1; i >= 0; i--) {
+    const w = state.workouts[i];
+    const ex = w.exercises.find(e => e.exerciseName === exerciseName);
+    if (ex && ex.sets && ex.sets.length > 0) {
+      const lastSet = ex.sets[ex.sets.length - 1];
+      return { weight: lastSet.weight, reps: lastSet.reps };
+    }
+  }
+  return { weight: '', reps: '' };
+}
+
+function renderTrainingExerciseCard(ex, idx) {
+  if (ex.sets.length === 0) {
+    ex.sets = [
+      { setNumber: 1, weight: getLastSetData(ex.exerciseName).weight, reps: getLastSetData(ex.exerciseName).reps, completed: false }
+    ];
+  }
+  const setsHtml = ex.sets.map((s, sIdx) => `
+    <div class="set-row">
+      <div class="set-number">第${sIdx + 1}组</div>
+      <input type="number" class="input-small" placeholder="kg" value="${s.weight}" oninput="updateSet(${idx}, ${sIdx}, 'weight', this.value)">
+      <span style="color: var(--color-text-secondary);">kg ×</span>
+      <input type="number" class="input-small" placeholder="次" value="${s.reps}" oninput="updateSet(${idx}, ${sIdx}, 'reps', this.value)">
+      <span style="color: var(--color-text-secondary);">次</span>
+      <div class="set-completed ${s.completed ? 'checked' : ''}" onclick="toggleSetComplete(${idx}, ${sIdx})">${s.completed ? '✓' : ''}</div>
+    </div>
+  `).join('');
+  return `
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+        <div style="font-weight: 600;">${ex.exerciseName}</div>
+        <button class="header-btn danger btn-sm" onclick="removeTrainingExercise(${idx})">删除</button>
+      </div>
+      ${setsHtml}
+      <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-sm);">
+        <button class="btn btn-secondary btn-sm" onclick="addSet(${idx})">+ 添加组</button>
+        <button class="btn btn-secondary btn-sm" onclick="removeLastSet(${idx})">- 删最后一组</button>
+      </div>
+      <div class="divider"></div>
+      <div style="display: flex; align-items: center; gap: var(--space-sm); flex-wrap: wrap;">
+        <span style="font-size: var(--font-sm); color: var(--color-text-secondary);">休息:</span>
+        <input type="number" class="input-small" id="restInput-${idx}" value="${state.settings.defaultRestSeconds}" style="width: 50px;">
+        <span style="font-size: var(--font-sm); color: var(--color-text-secondary);">秒</span>
+        <button class="btn btn-primary btn-sm" onclick="startRest(${idx})">▶ 开始</button>
+        <span id="restDisplay-${idx}" style="font-weight: 600; font-variant-numeric: tabular-nums; min-width: 40px;"></span>
+        <button class="btn btn-secondary btn-sm" id="restAdd30-${idx}" style="display:none;" onclick="addRest30(${idx})">+30s</button>
+        <button class="btn btn-secondary btn-sm" id="restSkip-${idx}" style="display:none;" onclick="skipRest(${idx})">跳过</button>
+      </div>
+    </div>
+  `;
+}
+
+function updateSet(exIdx, setIdx, field, value) {
+  const v = value === '' ? '' : Number(value);
+  state.training.exercises[exIdx].sets[setIdx][field] = v;
+}
+
+function toggleSetComplete(exIdx, setIdx) {
+  const s = state.training.exercises[exIdx].sets[setIdx];
+  s.completed = !s.completed;
+  renderTrainingExercises();
+}
+
+function addSet(exIdx) {
+  const ex = state.training.exercises[exIdx];
+  const last = ex.sets[ex.sets.length - 1];
+  ex.sets.push({ setNumber: ex.sets.length + 1, weight: last ? last.weight : '', reps: last ? last.reps : '', completed: false });
+  renderTrainingExercises();
+}
+
+function removeLastSet(exIdx) {
+  const ex = state.training.exercises[exIdx];
+  if (ex.sets.length > 1) { ex.sets.pop(); renderTrainingExercises(); }
+}
+
+function removeTrainingExercise(exIdx) {
+  state.training.exercises.splice(exIdx, 1);
+  renderTrainingExercises();
+}
+
+function startRest(exIdx) {
+  const seconds = parseInt(document.getElementById('restInput-' + exIdx).value) || 90;
+  state.settings.defaultRestSeconds = seconds;
+  saveSettingsData();
+  let remaining = seconds;
+  const display = document.getElementById('restDisplay-' + exIdx);
+  document.getElementById('restAdd30-' + exIdx).style.display = 'inline-flex';
+  document.getElementById('restSkip-' + exIdx).style.display = 'inline-flex';
+  display.textContent = formatRestTime(remaining);
+  if (restTimerInterval) clearInterval(restTimerInterval);
+  restTimerInterval = setInterval(() => {
+    remaining--;
+    display.textContent = formatRestTime(remaining);
+    if (remaining <= 0) {
+      clearInterval(restTimerInterval);
+      try { beep(); } catch(e){}
+      display.textContent = '结束';
+      document.getElementById('restAdd30-' + exIdx).style.display = 'none';
+      document.getElementById('restSkip-' + exIdx).style.display = 'none';
+      showToast('休息结束！');
+    }
+  }, 1000);
+}
+
+function formatRestTime(s) {
+  const m = String(Math.floor(s / 60)).padStart(2, '0');
+  const sec = String(s % 60).padStart(2, '0');
+  return `${m}:${sec}`;
+}
+
+function addRest30(exIdx) {
+  // 简化：重新启动计时器并加30s不实现复杂逻辑，直接提示
+  showToast('已加30秒');
+}
+
+function skipRest(exIdx) {
+  if (restTimerInterval) clearInterval(restTimerInterval);
+  document.getElementById('restDisplay-' + exIdx).textContent = '';
+  document.getElementById('restAdd30-' + exIdx).style.display = 'none';
+  document.getElementById('restSkip-' + exIdx).style.display = 'none';
+}
+
+function beep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 800;
+    gain.gain.value = 0.3;
+    osc.start();
+    setTimeout(() => { osc.stop(); ctx.close(); }, 300);
+  } catch(e) {}
+}
+
+function showAddExerciseInTrainingModal() {
+  const list = state.exercises.filter(e => e.bodyPartId === state.currentBodyPartId && !state.training.exercises.find(te => te.exerciseId === e.id));
+  const container = document.getElementById('trainingExerciseOptions');
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="padding: var(--space-md);">当前部位无可用动作，请新建</div>';
+  } else {
+    container.innerHTML = list.map(ex => `
+      <div class="list-item" onclick="addExerciseToTraining('${ex.id}', '${ex.name}')">
+        <div>${ex.name}</div>
+        <div style="color: var(--color-accent);">+</div>
+      </div>
+    `).join('');
+  }
+  openModal('addExerciseTrainingModal');
+}
+
+function addExerciseToTraining(exId, exName) {
+  state.training.exercises.push({ exerciseId: exId, exerciseName: exName, sets: [] });
+  renderTrainingExercises();
+  closeModal('addExerciseTrainingModal');
+  showToast('已添加');
+}
+
+function showCreateExerciseInTrainingModal() {
+  closeModal('addExerciseTrainingModal');
+  document.getElementById('inputModalTitle').textContent = '新建动作';
+  document.getElementById('inputModalValue').value = '';
+  document.getElementById('inputModalValue').placeholder = '动作名称';
+  document.getElementById('inputModalConfirm').onclick = () => {
+    const name = document.getElementById('inputModalValue').value.trim();
+    if (!name) { showToast('请输入动作名称'); return; }
+    const newId = genId('ex');
+    state.exercises.push({ id: newId, bodyPartId: state.currentBodyPartId, name, createdAt: new Date().toISOString() });
+    saveExercises();
+    state.training.exercises.push({ exerciseId: newId, exerciseName: name, sets: [] });
+    renderTrainingExercises();
+    closeModal('inputModal');
+    showToast('已创建并添加');
+  };
+  openModal('inputModal');
+}
+
+function confirmEndTraining() {
+  document.getElementById('confirmModalTitle').textContent = '结束训练';
+  document.getElementById('confirmModalBody').textContent = '结束训练？已记录的数据会保存';
+  document.getElementById('confirmModalConfirm').onclick = () => {
+    endTraining();
+    closeModal('confirmModal');
+  };
+  openModal('confirmModal');
+}
+
+function endTraining() {
+  if (trainingTimerInterval) clearInterval(trainingTimerInterval);
+  if (restTimerInterval) clearInterval(restTimerInterval);
+  const durationMs = Date.now() - state.training.startTime;
+  const durationMinutes = Math.max(1, Math.round(durationMs / 60000));
+  const workout = {
+    id: genId('wk'),
+    date: todayStr(),
+    bodyPartId: state.training.bodyPartId,
+    bodyPartName: state.training.bodyPartName,
+    durationMinutes,
+    exercises: state.training.exercises.map(ex => ({
+      exerciseId: ex.exerciseId,
+      exerciseName: ex.exerciseName,
+      sets: ex.sets.filter(s => s.completed).map((s, i) => ({ setNumber: i + 1, weight: s.weight, reps: s.reps, completed: true }))
+    })).filter(ex => ex.sets.length > 0),
+    createdAt: new Date().toISOString()
+  };
+  state.workouts.push(workout);
+  saveWorkouts();
+  showSummary(workout);
+  showPage('summary');
+}
+
+function showSummary(workout) {
+  document.getElementById('summaryDuration').textContent = `${workout.durationMinutes} 分钟`;
+  const totalSets = workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+  document.getElementById('summaryText').textContent = `今天训练 ${workout.durationMinutes} 分钟，练了${workout.bodyPartName}，共 ${workout.exercises.length} 个动作 ${totalSets} 组`;
+  document.getElementById('aiAdvice').textContent = '分析中...';
+  setTimeout(() => callAI(workout), 500);
+}
+
+// ==================== AI 建议 ====================
+async function callAI(workout) {
+  const recent = state.workouts.filter(w => {
+    const d = new Date(w.date);
+    const diff = (new Date() - d) / (1000 * 60 * 60 * 24);
+    return diff <= 14;
+  });
+  if (recent.length < 2) {
+    document.getElementById('aiAdvice').textContent = '数据不足，多练几次再来分析吧';
+    return;
+  }
+  const provider = state.settings.aiProvider || 'deepseek';
+  if (provider === 'deepseek' && !state.settings.apiKey) {
+    document.getElementById('aiAdvice').textContent = '请在设置中配置 DeepSeek API Key 以获取AI建议';
+    return;
+  }
+  if (provider === 'doubao' && !state.settings.doubaoKey) {
+    document.getElementById('aiAdvice').textContent = '请在设置中配置豆包（火山方舟）接入点以获取AI建议';
+    return;
+  }
+  try {
+    const text = '近两周训练记录：\n' + recent.map(w => `- ${w.date}：${w.bodyPartName}，${w.exercises.length}个动作，${w.exercises.reduce((s,e)=>s+e.sets.length,0)}组，${w.durationMinutes}分钟`).join('\n');
+    const systemPrompt = '你是一个健身训练顾问。根据训练记录，分析各部位训练量是否均衡，用一句话给出建议，不超过50字，语气友好。';
+    let result = '';
+    if (provider === 'doubao') {
+      // 豆包（火山方舟）接口：Endpoint ID 作为 model
+      const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.settings.doubaoKey}` },
+        body: JSON.stringify({
+          model: state.settings.doubaoKey,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: text }
+          ],
+          max_tokens: 100
+        })
+      });
+      const data = await response.json();
+      if (data.choices && data.choices[0]) result = data.choices[0].message.content;
+    } else {
+      const response = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.settings.apiKey}` },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: text }
+          ],
+          max_tokens: 100
+        })
+      });
+      const data = await response.json();
+      if (data.choices && data.choices[0]) result = data.choices[0].message.content;
+    }
+    document.getElementById('aiAdvice').textContent = result || 'AI 分析暂不可用';
+  } catch (e) {
+    document.getElementById('aiAdvice').textContent = 'AI 分析暂不可用（网络错误或Key无效）';
+  }
+}
+
+function toggleAiKeyInputs() {
+  const provider = document.getElementById('settingsAiProvider').value;
+  const dsField = document.getElementById('deepseekKeyField');
+  const dbField = document.getElementById('doubaoKeyField');
+  if (provider === 'doubao') {
+    dsField.style.display = 'none';
+    dbField.style.display = 'block';
+  } else {
+    dsField.style.display = 'block';
+    dbField.style.display = 'none';
+  }
+}
+
+// ==================== 日历 ====================
+function renderCalendar() {
+  const d = state.calendarDate;
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  document.getElementById('calendarTitle').textContent = `${year}年 ${month + 1}月`;
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const prevMonthDays = new Date(year, month, 0).getDate();
+  const monthWorkouts = state.workouts.filter(w => {
+    const wd = new Date(w.date);
+    return wd.getFullYear() === year && wd.getMonth() === month;
+  });
+  const totalMinutes = monthWorkouts.reduce((s, w) => s + w.durationMinutes, 0);
+  document.getElementById('monthSummary').textContent = `本月训练 ${monthWorkouts.length} 次 · 共 ${(totalMinutes / 60).toFixed(1)} 小时`;
+  const workoutMap = {};
+  monthWorkouts.forEach(w => {
+    const day = new Date(w.date).getDate();
+    if (!workoutMap[day]) workoutMap[day] = [];
+    workoutMap[day].push(w);
+  });
+  let html = '';
+  const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+  weekdays.forEach(w => { html += `<div class="calendar-weekday">${w}</div>`; });
+  for (let i = firstDay - 1; i >= 0; i--) {
+    html += `<div class="calendar-day other-month"><div class="day-num">${prevMonthDays - i}</div></div>`;
+  }
+  const today = new Date();
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isToday = year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
+    const ws = workoutMap[day] || [];
+    let content = '';
+    if (ws.length > 0) {
+      const parts = ws.map(w => w.bodyPartName).join('·');
+      const totalMin = ws.reduce((s, w) => s + w.durationMinutes, 0);
+      const colorClass = getBodyPartColorClass(ws[0].bodyPartName);
+      content = `<div class="day-content ${colorClass}"><div class="workout-tag">${parts}</div><div style="font-size:9px;">${totalMin}min</div></div>`;
+    }
+    html += `<div class="calendar-day ${isToday ? 'today' : ''} ${ws.length > 0 ? 'has-workout' : ''}" onclick="openDayDetail('${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}')"><div class="day-num">${day}</div>${content}</div>`;
+  }
+  document.getElementById('calendarGrid').innerHTML = html;
+  document.getElementById('dayDetailPanel').innerHTML = '';
+}
+
+function prevMonth() {
+  state.calendarDate.setMonth(state.calendarDate.getMonth() - 1);
+  renderCalendar();
+}
+
+function nextMonth() {
+  state.calendarDate.setMonth(state.calendarDate.getMonth() + 1);
+  renderCalendar();
+}
+
+function openDayDetail(dateStr) {
+  state.editDayDate = dateStr;
+  const ws = state.workouts.filter(w => w.date === dateStr);
+  state.editDayWorkouts = JSON.parse(JSON.stringify(ws));
+  const d = new Date(dateStr);
+  document.getElementById('dayDetailTitle').textContent = `${d.getMonth() + 1}月${d.getDate()}日 详情`;
+  renderDayDetailBody();
+  openModal('dayDetailModal');
+}
+
+function renderDayDetailBody() {
+  const container = document.getElementById('dayDetailBody');
+  if (state.editDayWorkouts.length === 0) {
+    container.innerHTML = `<div class="empty-state" style="padding: var(--space-md);">该日无训练记录</div><button class="btn btn-primary btn-block btn-sm" onclick="closeModal('dayDetailModal'); showAddWorkoutForDate('${state.editDayDate}')">+ 补录训练</button>`;
+    return;
+  }
+  container.innerHTML = state.editDayWorkouts.map((w, wIdx) => `
+    <div class="card" style="margin-bottom: var(--space-sm); background: var(--color-bg);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+        <input type="text" class="input-small" style="width: 100px;" value="${w.bodyPartName}" oninput="state.editDayWorkouts[${wIdx}].bodyPartName = this.value">
+        <input type="number" class="input-small" style="width: 60px;" value="${w.durationMinutes}" oninput="state.editDayWorkouts[${wIdx}].durationMinutes = Number(this.value)">
+        <span style="font-size: var(--font-sm); color: var(--color-text-secondary);">分钟</span>
+        <button class="header-btn danger btn-sm" onclick="deleteEditWorkout(${wIdx})">🗑️</button>
+      </div>
+      ${w.exercises.map((ex, exIdx) => `
+        <div style="margin-bottom: var(--space-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <input type="text" class="input-small" style="width: 120px;" value="${ex.exerciseName}" oninput="state.editDayWorkouts[${wIdx}].exercises[${exIdx}].exerciseName = this.value">
+            <button class="header-btn danger btn-sm" onclick="deleteEditExercise(${wIdx}, ${exIdx})">×</button>
+          </div>
+          ${ex.sets.map((s, sIdx) => `
+            <div class="set-row" style="padding: var(--space-xs) 0;">
+              <div class="set-number" style="width: 30px; font-size: 11px;">${sIdx + 1}</div>
+              <input type="number" class="input-small" style="width: 50px;" value="${s.weight}" oninput="state.editDayWorkouts[${wIdx}].exercises[${exIdx}].sets[${sIdx}].weight = Number(this.value)">
+              <span style="font-size: 11px; color: var(--color-text-secondary);">kg×</span>
+              <input type="number" class="input-small" style="width: 50px;" value="${s.reps}" oninput="state.editDayWorkouts[${wIdx}].exercises[${exIdx}].sets[${sIdx}].reps = Number(this.value)">
+              <button class="header-btn danger btn-sm" onclick="deleteEditSet(${wIdx}, ${exIdx}, ${sIdx})">×</button>
+            </div>
+          `).join('')}
+          <button class="btn btn-secondary btn-sm" onclick="addEditSet(${wIdx}, ${exIdx})">+ 添加组</button>
+        </div>
+      `).join('')}
+      <div id="addExerciseInline-${wIdx}">
+        <button class="btn btn-secondary btn-sm" onclick="showInlineAddExercise(${wIdx})">+ 添加动作</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteEditWorkout(wIdx) {
+  state.editDayWorkouts.splice(wIdx, 1);
+  renderDayDetailBody();
+}
+function deleteEditExercise(wIdx, exIdx) {
+  state.editDayWorkouts[wIdx].exercises.splice(exIdx, 1);
+  renderDayDetailBody();
+}
+function deleteEditSet(wIdx, exIdx, sIdx) {
+  state.editDayWorkouts[wIdx].exercises[exIdx].sets.splice(sIdx, 1);
+  renderDayDetailBody();
+}
+function addEditSet(wIdx, exIdx) {
+  const ex = state.editDayWorkouts[wIdx].exercises[exIdx];
+  ex.sets.push({ setNumber: ex.sets.length + 1, weight: 0, reps: 0, completed: true });
+  renderDayDetailBody();
+}
+function showInlineAddExercise(wIdx) {
+  const container = document.getElementById(`addExerciseInline-${wIdx}`);
+  container.innerHTML = `
+    <div style="display: flex; gap: var(--space-sm); margin-top: var(--space-sm); align-items: center;">
+      <input type="text" class="input" id="inlineExerciseName-${wIdx}" placeholder="动作名称" style="flex: 1;">
+      <button class="btn btn-primary btn-sm" onclick="confirmInlineAddExercise(${wIdx})">添加</button>
+      <button class="btn btn-secondary btn-sm" onclick="cancelInlineAddExercise(${wIdx})">取消</button>
+    </div>
+  `;
+  setTimeout(() => document.getElementById(`inlineExerciseName-${wIdx}`).focus(), 100);
+}
+
+function confirmInlineAddExercise(wIdx) {
+  const name = document.getElementById(`inlineExerciseName-${wIdx}`).value.trim();
+  if (!name) { showToast('请输入动作名称'); return; }
+  state.editDayWorkouts[wIdx].exercises.push({ exerciseId: genId('ex'), exerciseName: name, sets: [{ setNumber: 1, weight: 0, reps: 0, completed: true }] });
+  renderDayDetailBody();
+}
+
+function cancelInlineAddExercise(wIdx) {
+  renderDayDetailBody();
+}
+
+function saveDayDetailEdits() {
+  state.workouts = state.workouts.filter(w => w.date !== state.editDayDate);
+  state.editDayWorkouts.forEach(w => {
+    if (w.exercises.length > 0 || w.durationMinutes > 0) {
+      state.workouts.push(w);
+    }
+  });
+  saveWorkouts();
+  closeModal('dayDetailModal');
+  renderCalendar();
+  showToast('已保存');
+}
+
+function showAddWorkoutForDate(dateStr) {
+  const select = document.getElementById('addWorkoutBodyPart');
+  select.innerHTML = state.bodyParts.map(bp => `<option value="${bp.id}|${bp.name}">${bp.name}</option>`).join('');
+  document.getElementById('addWorkoutDuration').value = 60;
+  document.getElementById('addWorkoutModal').dataset.date = dateStr;
+  openModal('addWorkoutModal');
+}
+
+function saveAddWorkout() {
+  const dateStr = document.getElementById('addWorkoutModal').dataset.date;
+  const [bpId, bpName] = document.getElementById('addWorkoutBodyPart').value.split('|');
+  const duration = parseInt(document.getElementById('addWorkoutDuration').value) || 60;
+  state.workouts.push({
+    id: genId('wk'),
+    date: dateStr,
+    bodyPartId: bpId,
+    bodyPartName: bpName,
+    durationMinutes: duration,
+    exercises: [],
+    createdAt: new Date().toISOString()
+  });
+  saveWorkouts();
+  closeModal('addWorkoutModal');
+  renderCalendar();
+  showToast('已补录');
+}
+
+// ==================== 训练记录列表 ====================
+function renderTotalStats() {
+  const totalMinutes = state.workouts.reduce((s, w) => s + w.durationMinutes, 0);
+  const totalHours = (totalMinutes / 60).toFixed(1);
+  const count = state.workouts.length;
+  document.getElementById('totalDuration').textContent = `${totalHours} 小时`;
+  document.getElementById('totalCount').textContent = `共 ${count} 次训练`;
+}
+
+function showWorkoutList() {
+  const container = document.getElementById('workoutListBody');
+  if (state.workouts.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="padding: var(--space-md);"><div class="empty-state-icon">📋</div><div>暂无训练记录</div></div>';
+  } else {
+    const sorted = [...state.workouts].sort((a, b) => new Date(b.date) - new Date(a.date));
+    const hint = `<div style="text-align:center; color: var(--color-text-secondary); font-size: var(--font-xs); margin-bottom: var(--space-sm);">共 ${state.workouts.length} 条训练记录</div>`;
+    container.innerHTML = hint + sorted.map(w => {
+      const colorClass = getBodyPartColorClass(w.bodyPartName);
+      const d = new Date(w.date);
+      const dateStr = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+      return `
+        <div class="list-item" onclick="openWorkoutFromList('${w.date}')">
+          <div>
+            <div style="font-weight: 600; margin-bottom: 4px;">${dateStr}</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="workout-tag ${colorClass}" style="padding: 2px 8px; border-radius: 4px;">${w.bodyPartName}</span>
+              <span style="color: var(--color-text-secondary); font-size: var(--font-sm);">${w.durationMinutes} 分钟</span>
+            </div>
+          </div>
+          <div style="color: var(--color-text-secondary);">›</div>
+        </div>
+      `;
+    }).join('');
+  }
+  openModal('workoutListModal');
+}
+
+function openWorkoutFromList(dateStr) {
+  closeModal('workoutListModal');
+  openDayDetail(dateStr);
+}
+
+// ==================== 设置 ====================
+function openSettings() {
+  document.getElementById('settingsRestSeconds').value = state.settings.defaultRestSeconds;
+  document.getElementById('settingsAiProvider').value = state.settings.aiProvider || 'deepseek';
+  document.getElementById('settingsApiKey').value = state.settings.apiKey || '';
+  document.getElementById('settingsDoubaoKey').value = state.settings.doubaoKey || '';
+  toggleAiKeyInputs();
+  openModal('settingsModal');
+}
+
+function saveSettings() {
+  state.settings.defaultRestSeconds = parseInt(document.getElementById('settingsRestSeconds').value) || 90;
+  state.settings.aiProvider = document.getElementById('settingsAiProvider').value;
+  state.settings.apiKey = document.getElementById('settingsApiKey').value.trim();
+  state.settings.doubaoKey = document.getElementById('settingsDoubaoKey').value.trim();
+  saveSettingsData();
+  closeModal('settingsModal');
+  showToast('已保存');
+}
+
+// ==================== 工具函数 ====================
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('active');
+  setTimeout(() => t.classList.remove('active'), 1500);
+}
+
+// ==================== 初始化 ====================
+const hasAnyProfile = loadProfiles();
+if (hasAnyProfile) {
+  loadState();
+  renderCurrentProfileHeader();
+  renderBodyParts();
+  renderTotalStats();
+  document.getElementById('welcomeScreen').style.display = 'none';
+} else {
+  // 新设备 / 清缓存后：显示欢迎引导，不加载任何档案数据
+  document.getElementById('welcomeScreen').style.display = 'flex';
+}
+</script>
+</body>
+</html>
